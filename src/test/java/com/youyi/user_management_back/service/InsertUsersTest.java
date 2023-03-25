@@ -108,10 +108,10 @@ public class InsertUsersTest {
                 j++;
                 User user = new User();
                 user.setUsername("测试数据");
-                user.setUserAccount("youyi");
+                user.setUserAccount("youyi" + j);
                 user.setAvatarUrl("https://thirdwx.qlogo.cn/mmopen/vi_32/yYiceiaZZfa0xRHFE67FNHRFsFBWGicVUIuC8VMBACz7cC7vKqEq2ibLr5rzuMmPMoztwThpL0BOnNiceDxHzzSWVzw/132");
                 user.setGender(0);
-                user.setUserPassword("12345678");
+                user.setUserPassword("12345678" + j);
                 user.setPhone("123");
                 user.setEmail("123@qq.com");
                 user.setTags("[]");
@@ -133,6 +133,4 @@ public class InsertUsersTest {
         stopWatch.stop();
         System.out.println(stopWatch.getTotalTimeMillis());
     }
-
-
 }
