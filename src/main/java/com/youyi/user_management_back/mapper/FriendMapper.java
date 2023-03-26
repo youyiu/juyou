@@ -3,6 +3,8 @@ package com.youyi.user_management_back.mapper;
 import com.youyi.user_management_back.model.domain.Friend;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.Map;
+
 /**
 * @author chen
 * @description 针对表【friend(好友)】的数据库操作Mapper
@@ -11,6 +13,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 public interface FriendMapper extends BaseMapper<Friend> {
 
+    int judgeFriend(Long userId,Long friendId);
+
+    boolean applyFriend(Map<String,Object> apply);
 }
 
 

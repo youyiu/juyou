@@ -23,4 +23,17 @@
         status,createTime,updateTime,
         isDelete
     </sql>
+    <insert id="applyFriend">
+        INSERT INTO friend (userId,friendId,reason)
+        VALUES (#{userId},#{friendId},#{reason})
+    </insert>
+
+    <select id="judgeFriend" resultType="java.lang.Integer">
+        select count(*)
+        from friend
+        where (userId = #{userId} and friendId =  #{friendId})
+        or (userId = #{friendId} and friendId = #{userId})
+    </select>
+
+
 </mapper>

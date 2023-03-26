@@ -3,6 +3,7 @@ package com.youyi.user_management_back.mapper;
 import com.youyi.user_management_back.model.domain.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 /**
 * @author chen
@@ -13,6 +14,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
+    @Select("select id from user where id = #{id}")
+    boolean existUser(long id);
 }
 
 

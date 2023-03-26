@@ -24,7 +24,7 @@ public class Friend implements Serializable {
     /**
      * 用户id
      */
-    private Long userId;
+    private long userId;
 
     /**
      * 好友id
