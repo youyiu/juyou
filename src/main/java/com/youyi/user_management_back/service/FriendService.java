@@ -4,6 +4,7 @@ import com.youyi.user_management_back.model.domain.Friend;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.youyi.user_management_back.model.domain.User;
 import com.youyi.user_management_back.model.request.FriendAddRequest;
+import com.youyi.user_management_back.model.request.FriendHandleRequest;
 
 /**
 * @author chen
@@ -13,4 +14,6 @@ import com.youyi.user_management_back.model.request.FriendAddRequest;
 public interface FriendService extends IService<Friend> {
 
     boolean addFriend(FriendAddRequest friend, User loginUser);
+
+    boolean handleApply(FriendHandleRequest handleRequest, User loginUser);
 }

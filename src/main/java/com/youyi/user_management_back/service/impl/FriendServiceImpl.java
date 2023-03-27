@@ -2,11 +2,13 @@ package com.youyi.user_management_back.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youyi.user_management_back.common.ErrorCode;
+import com.youyi.user_management_back.constant.FriendConstant;
 import com.youyi.user_management_back.exception.BusinessException;
 import com.youyi.user_management_back.mapper.UserMapper;
 import com.youyi.user_management_back.model.domain.Friend;
 import com.youyi.user_management_back.model.domain.User;
 import com.youyi.user_management_back.model.request.FriendAddRequest;
+import com.youyi.user_management_back.model.request.FriendHandleRequest;
 import com.youyi.user_management_back.service.FriendService;
 import com.youyi.user_management_back.mapper.FriendMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -36,10 +38,10 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend>
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         long friendId = friend.getFriendId();
-        if (friendId <= 0) {
+        long userId = loginUser.getId();
+        if (friendId <= 0 || friendId == userId) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long userId = loginUser.getId();
         //判断是否存在好友这个用户
         boolean exist = userMapper.existUser(friendId);
         if (!exist) {
@@ -64,6 +66,39 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend>
         apply.put("reason",StringUtils.defaultIfBlank(reason, "无"));
         return friendMapper.applyFriend(apply);
     }
+
+    @Override
+    public boolean handleApply(FriendHandleRequest handleRequest, User loginUser) {
+        long id = handleRequest.getId();
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Friend friendApply = getById(id);
+        if (friendApply == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        //1. 判断请求是否是添加的自己
+        Long friendId = friendApply.getFriendId();
+        if(friendId != loginUser.getId()) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        //2. 判断申请状态
+        //2.1 已拒绝/同意，返回
+        Integer status = friendApply.getStatus();
+        if (status == FriendConstant.ACCEPTED_STATUS || status == FriendConstant.REJECTED_STATUS) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        //3. 判断用户接受请求还是拒绝请求
+        Integer requestStatus = handleRequest.getStatus();
+        if (requestStatus != FriendConstant.REJECTED_STATUS &&
+                requestStatus != FriendConstant.ACCEPTED_STATUS) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //接受请求/拒绝请求
+        return friendMapper.handleApply(id,requestStatus);
+    }
+
+
 }
 
 

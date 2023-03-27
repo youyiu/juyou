@@ -6,6 +6,7 @@ import com.youyi.user_management_back.common.ResultUtils;
 import com.youyi.user_management_back.exception.BusinessException;
 import com.youyi.user_management_back.model.domain.User;
 import com.youyi.user_management_back.model.request.FriendAddRequest;
+import com.youyi.user_management_back.model.request.FriendHandleRequest;
 import com.youyi.user_management_back.service.FriendService;
 import com.youyi.user_management_back.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,14 +29,30 @@ public class FriendController {
 
     @PostMapping("/add")
     public BaseResponse<Boolean> addFriend(@RequestBody FriendAddRequest addRequest, HttpServletRequest request) {
-        if (addRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = nullJudgeAndGetLoginUser(addRequest, request);
         boolean result = friendService.addFriend(addRequest,loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"添加失败");
         }
         return ResultUtils.success(true);
+    }
+
+
+
+    @PostMapping("/handle")
+    public BaseResponse<Boolean> handleApply(@RequestBody FriendHandleRequest handleRequest,HttpServletRequest request) {
+        User loginUser = nullJudgeAndGetLoginUser(handleRequest, request);
+        boolean result = friendService.handleApply(handleRequest,loginUser);
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return ResultUtils.success(true);
+    }
+
+    private User nullJudgeAndGetLoginUser(Object selfRequest, HttpServletRequest request) {
+        if (selfRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return userService.getLoginUser(request);
     }
 }
