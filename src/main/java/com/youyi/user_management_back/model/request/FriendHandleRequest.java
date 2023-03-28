@@ -14,10 +14,6 @@ public class FriendHandleRequest {
     @TableId(type = IdType.AUTO)
     private long id;
 
-    /**
-     * 好友id
-     */
-    private Long friendId;
 
     /**
      * 申请状态,0 申请中，1 已同意，2 已拒绝

@@ -38,7 +38,6 @@ public class FriendController {
     }
 
 
-
     @PostMapping("/handle")
     public BaseResponse<Boolean> handleApply(@RequestBody FriendHandleRequest handleRequest,HttpServletRequest request) {
         User loginUser = nullJudgeAndGetLoginUser(handleRequest, request);
