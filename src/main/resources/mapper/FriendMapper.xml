@@ -35,5 +35,13 @@
         or (userId = #{friendId} and friendId = #{userId})
     </select>
 
+    <select id="listMyFriend" resultType="java.lang.Integer">
+        select friendId
+        from friend where userId = #{loginUserId} and status = 1
+        union
+        select userId
+        from friend where friendId = #{loginUserId} and status = 1;
+    </select>
+
 
 </mapper>

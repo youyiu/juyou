@@ -4,6 +4,7 @@ import com.youyi.user_management_back.model.domain.Friend;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +21,8 @@ public interface FriendMapper extends BaseMapper<Friend> {
 
     @Update("update friend set status = #{status} where id = #{id}")
     boolean handleApply(long id,Integer status);
+
+    List<Integer> listMyFriend(long loginUserId);
 }
 
 

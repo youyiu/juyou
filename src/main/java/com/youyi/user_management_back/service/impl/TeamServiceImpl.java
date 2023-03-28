@@ -1,8 +1,6 @@
 package com.youyi.user_management_back.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youyi.user_management_back.common.ErrorCode;
 import com.youyi.user_management_back.exception.BusinessException;
@@ -197,7 +195,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             }
             teamUserVOS.add(teamUserVO);
         }
-
         return teamUserVOS;
     }
 
