@@ -31,16 +31,25 @@
     <select id="judgeFriend" resultType="java.lang.Integer">
         select count(*)
         from friend
-        where (userId = #{userId} and friendId =  #{friendId})
-        or (userId = #{friendId} and friendId = #{userId})
+        where ((userId = #{userId} and friendId =  #{friendId})
+        or (userId = #{friendId} and friendId = #{userId}))
+        and status in (1,0);
     </select>
 
-    <select id="listMyFriend" resultType="java.lang.Integer">
+    <select id="listMyFriend" resultType="java.lang.Long">
         select friendId
         from friend where userId = #{loginUserId} and status = 1
         union
         select userId
         from friend where friendId = #{loginUserId} and status = 1;
+    </select>
+
+    <select id="getFriendRecord" resultType="java.lang.Long">
+        select id
+        from friend
+        where ((userId = #{userId} and friendId =  #{friendId})
+            or (userId = #{friendId} and friendId = #{userId}))
+          and status = 1;
     </select>
 
 

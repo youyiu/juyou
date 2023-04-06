@@ -17,12 +17,14 @@ public interface FriendMapper extends BaseMapper<Friend> {
 
     int judgeFriend(Long userId,Long friendId);
 
+    //根据用户id和好友id获取已经是好友关系的记录信息
+    Long getFriendRecord(Long userId,Long friendId);
     boolean applyFriend(Map<String,Object> apply);
 
     @Update("update friend set status = #{status} where id = #{id}")
     boolean handleApply(long id,Integer status);
 
-    List<Integer> listMyFriend(long loginUserId);
+    List<Long> listMyFriend(long loginUserId);
 }
 
 

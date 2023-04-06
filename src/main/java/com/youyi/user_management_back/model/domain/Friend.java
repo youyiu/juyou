@@ -1,9 +1,7 @@
 package com.youyi.user_management_back.model.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
@@ -29,7 +27,7 @@ public class Friend implements Serializable {
     /**
      * 好友id
      */
-    private Long friendId;
+    private long friendId;
 
     /**
      * 用户对好友的备注
@@ -64,6 +62,7 @@ public class Friend implements Serializable {
     /**
      * 
      */
+    @TableLogic
     private Integer isDelete;
 
     @TableField(exist = false)

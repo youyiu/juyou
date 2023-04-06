@@ -23,4 +23,8 @@ public interface FriendService extends IService<Friend> {
     List<User> listMyFriend(User loginUser);
 
     List<FriendUserVO> listApply(User loginUser);
+
+    boolean deleteFriend(long userId, User loginUser);
+
+    List<User> search(String username, User loginUser);
 }

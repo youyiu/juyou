@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youyi.user_management_back.common.ErrorCode;
+import com.youyi.user_management_back.common.ResultUtils;
 import com.youyi.user_management_back.constant.FriendConstant;
 import com.youyi.user_management_back.exception.BusinessException;
 import com.youyi.user_management_back.mapper.UserMapper;
@@ -117,7 +118,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend>
     @Override
     public List<User> listMyFriend(User loginUser) {
         long userId = loginUser.getId();
-        List<Integer> ids = friendMapper.listMyFriend(userId);
+        List<Long> ids = friendMapper.listMyFriend(userId);
         List<User> userList = userMapper.selectBatchIds(ids);
         return userList.stream()
                 .map(userService::getSafetyUser)
@@ -150,6 +151,38 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend>
             friendUserVO.setStatus(apply.getStatus());
             return friendUserVO;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean deleteFriend(long userId, User loginUser) {
+        //1.判断好友是否存在
+        User friendId = userService.getById(userId);
+        if (friendId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //2.判断两人是否是好友
+        Long friendRecord = friendMapper.getFriendRecord(userId, loginUser.getId());
+        if (friendRecord == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //3.删除好友关系
+        return removeById(friendRecord);
+    }
+
+    @Override
+    public List<User> search(String username, User loginUser) {
+        //1.根据用户名查询所有符合的用户
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(username)){
+            queryWrapper.like(User::getUsername,username);
+        }
+        List<User> userList = userService.list(queryWrapper);
+        //2.查询自己的好友的id
+        List<Long> ids = friendMapper.listMyFriend(loginUser.getId());
+        //3.过滤不是自己好友的用户,且进行封装
+        return userList.stream()
+                .filter(user -> ids.contains(user.getId()))
+                .map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
     }
 }
 
