@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="generator.mapper.TeamNotificationMapper">
+
+    <resultMap id="BaseResultMap" type="com.youyi.user_management_back.model.domain.TeamNotification">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="acceptUserId" column="acceptUserId" jdbcType="INTEGER"/>
+            <result property="operateUserId" column="operateUserId" jdbcType="INTEGER"/>
+            <result property="teamId" column="teamId" jdbcType="INTEGER"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,acceptUserId,operateUserId,
+        teamId,status,createTime,
+        updateTime,isDelete
+    </sql>
+</mapper>

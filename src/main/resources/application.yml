@@ -20,6 +20,21 @@ spring:
     port: 6379
     host: 43.142.195.233
     password: 123321
+  rabbitmq:
+    host: 43.142.195.233
+    port: 5672
+    virtual-host: /
+    username: guest
+    password: guest
+    listener:
+      simple:
+        prefetch: 1
+        acknowledge-mode: auto #表示消息确认方式，其有三种配置方式，分别是none、manual和auto；默认auto
+        retry: #重试机制
+          enabled: true #是否开启
+          initial-interval: 1000 #重试间隔
+          multiplier: 3 #对于上一次重试的乘数
+          max-attempts: 4 #最大重试次数,默认3
 
 server:
   port: 8080

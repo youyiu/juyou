@@ -1,7 +1,6 @@
 package com.youyi.user_management_back.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.youyi.user_management_back.common.BaseResponse;
 import com.youyi.user_management_back.common.ErrorCode;
@@ -10,22 +9,20 @@ import com.youyi.user_management_back.exception.BusinessException;
 import com.youyi.user_management_back.model.domain.User;
 import com.youyi.user_management_back.model.request.UserLoginRequest;
 import com.youyi.user_management_back.model.request.UserRegisterRequest;
-import com.youyi.user_management_back.model.vo.UserVO;
 import com.youyi.user_management_back.service.UserService;
+import com.youyi.user_management_back.utils.ConcurrentUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpRequest;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-import static com.youyi.user_management_back.constant.UserConstant.ADMIN_ROLE;
 import static com.youyi.user_management_back.constant.UserConstant.USER_LOGIN_STATE;
 
 /**用户控制器
@@ -97,26 +94,51 @@ public class UserController {
         return ResultUtils.success(safetyUser);
     }
 
+    private ExecutorService executorService =
+            new ThreadPoolExecutor(40,1000,10000,
+                    TimeUnit.MINUTES,new ArrayBlockingQueue<>(1000));
+
     //查询用户
     @GetMapping("/search")
-    public BaseResponse<List<User>> search(String username,HttpServletRequest request){
+    public BaseResponse<List<User>> search(String username,HttpServletRequest request) throws ExecutionException, InterruptedException {
         //仅管理员可以查询
         if(!userService.isAdmin(request)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 //        List<User> list = userService.list();
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.isNotBlank(username)){
-            queryWrapper.like(User::getUsername,username);
+        if (StringUtils.isBlank(username)){
+            return ResultUtils.success(null);
         }
-        List<User> userList = userService.list(queryWrapper);
+        Future<List<User>> listExactFuture = ConcurrentUtils.doJob(executorService, () -> {
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(User::getUserAccount, username);
+            return userService.list(queryWrapper);
+        });
+        Future<List<User>> listLikeFuture = ConcurrentUtils.doJob(executorService, () -> {
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.like(User::getUserAccount, username).or().like(User::getUsername,username);
+            return userService.list(queryWrapper);
+        });
+        List<User> userList = listExactFuture.get();
+        if (!CollectionUtils.isEmpty(userList)) {
+            listLikeFuture.cancel(true);
+            return ResultUtils.success(userList
+                    .stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList()));
+        }
+        return ResultUtils.success(listLikeFuture.get()
+                .stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList()));
 
+//        Callable<User> userCallable = () -> null;
+//        Future<User> future = executorService.submit(userCallable);
+//        User user = future.get();
+//        queryWrapper.like(User::getUsername,username);
+//        return ResultUtils.success(null);
 
-        List<User> list1 = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-        return ResultUtils.success(list1);
+//        List<User> list1 = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+//        return ResultUtils.success(list1);
     }
 
-    //查询用户
+    //标签相近用户推荐
     @GetMapping("/recommend")
     public BaseResponse<Page<User>> RecommendUsers(long pageSize, long pageNum, HttpServletRequest request){
         User loginUser = userService.getLoginUser(request);

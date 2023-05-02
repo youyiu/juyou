@@ -6,6 +6,7 @@ import com.youyi.user_management_back.common.ErrorCode;
 import com.youyi.user_management_back.exception.BusinessException;
 import com.youyi.user_management_back.mapper.TeamMapper;
 import com.youyi.user_management_back.model.domain.Team;
+import com.youyi.user_management_back.model.domain.TeamNotification;
 import com.youyi.user_management_back.model.domain.User;
 import com.youyi.user_management_back.model.domain.UserTeam;
 import com.youyi.user_management_back.model.dto.TeamQuery;
@@ -21,9 +22,9 @@ import com.youyi.user_management_back.service.UserTeamService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +53,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -101,6 +105,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userId);
         long hasTeamNum = this.count(queryWrapper);
+        // TODO 高并发情况下，利用锁解决创建队伍超过5个问题
         if (hasTeamNum >= 5) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户最多创建5个队伍");
         }
@@ -198,6 +203,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         return teamUserVOS;
     }
 
+    // TODO 加密状态时修改密码，如果密码为空，将状态转为公开
     @Override
     public boolean updateTeam(TeamUpdateRequest teamUpdateRequest,User loginUser) {
         if (teamUpdateRequest == null) {
@@ -308,6 +314,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"未加入队伍");
         }
         long teamHasJoinNum = getTeamUserByTeamId(teamId);
+        //创建消息
+        TeamNotification ntf = null;
         if (teamHasJoinNum == 1) {
             // 删除队伍和队伍关系
             removeById(teamId);
@@ -315,8 +323,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 //            queryWrapper.eq("teamId",teamId);
 //            return userTeamService.remove(queryWrapper);
         }else {
+            ntf = new TeamNotification();
+            ntf.setStatus(0);
+            ntf.setOperateUserId(userId);
+            ntf.setAcceptUserId(team.getUserId());
             //是否为队长
             if (team.getUserId() == userId) {
+                ntf.setStatus(1);
                 // 把队伍转移给最早加入的队伍
                 // 1. 查询已加入队伍的所有用户和加入时间
                 queryWrapper = new QueryWrapper<>();
@@ -336,14 +349,18 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                 if (!result) {
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"更新队长失败");
                 }
+                ntf.setAcceptUserId(nextTeamLeaderId);
                 queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("team",teamId);
+                queryWrapper.eq("teamId",teamId);
                 queryWrapper.eq("userId",userId);
-
             }
         }
         // 移除关联
-        return userTeamService.remove(queryWrapper);
+        boolean remove = userTeamService.remove(queryWrapper);
+        if (remove && ntf != null) {
+            rabbitTemplate.convertAndSend("team.direct","quit",ntf);
+        }
+        return remove;
     }
 
     @Override

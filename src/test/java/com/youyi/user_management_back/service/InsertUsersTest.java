@@ -1,8 +1,12 @@
 package com.youyi.user_management_back.service;
 
 import com.youyi.user_management_back.model.domain.User;
+import jodd.util.RandomString;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.runner.RunWith;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StopWatch;
@@ -10,6 +14,7 @@ import org.springframework.util.StopWatch;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.*;
 
 @RunWith(SpringRunner.class)
