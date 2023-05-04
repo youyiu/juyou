@@ -252,7 +252,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
 
         //分布式锁
-        RLock lock = redissonClient.getLock("yupao:join_team");
+        RLock lock = redissonClient.getLock("jiaoyou:join_team");
         try {
             //只有一个线程
             if (lock.tryLock(0,30000, TimeUnit.MICROSECONDS)) {

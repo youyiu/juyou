@@ -39,7 +39,7 @@ public class PreCacheJob {
     //每天执行，预热推荐用户
     @Scheduled(cron = "0 59 23 * * ?")
     public void doCacheRecommendUser() {
-        RLock lock = redissonClient.getLock("yupao:precachejob:docache:lock");
+        RLock lock = redissonClient.getLock("jiaoyou:precachejob:docache:lock");
         try {
             //只有一个线程
             if (lock.tryLock(0,30000, TimeUnit.MICROSECONDS)) {
