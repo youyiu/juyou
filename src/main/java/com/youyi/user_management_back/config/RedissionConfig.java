@@ -17,6 +17,8 @@ public class RedissionConfig {
 
     private String port;
 
+    private String password;
+
     @Bean
     public RedissonClient redissonClient() {
         //配置
@@ -24,7 +26,7 @@ public class RedissionConfig {
         String redisAddress = String.format("redis://%s:%s", host, port);
         config.useSingleServer()
                 .setAddress(redisAddress)
-                .setPassword("123321");
+                .setPassword(password);
         //创建RedissonClient对象
         return Redisson.create(config);
     }
