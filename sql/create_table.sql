@@ -19,24 +19,71 @@ create table user
 )
     comment '用户';
 
-
+-- auto-generated definition
+create table team
+(
+    id          bigint auto_increment comment 'id'
+        primary key,
+    name        varchar(256)                               not null comment '标队伍名',
+    description varchar(1024)                              null comment '描述',
+    maxNum      int              default 1                 not null comment '最大人数',
+    expireTime  datetime                                   null comment '过期时间',
+    userId      bigint                                     null comment '用户id',
+    status      int              default 0                 not null comment '0 - 公开，1 - 私有，2 - 加密',
+    password    varchar(512)                               null comment '密码',
+    creatTime   datetime         default CURRENT_TIMESTAMP null comment '创建时间',
+    updateTime  datetime         default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint unsigned default '0'               not null comment '是否创建'
+)
+    comment '队伍';
 
 -- auto-generated definition
-create table tag
+create table team_notification
+(
+    id            int auto_increment
+        primary key,
+    acceptUserId  int                                not null comment '接受消息的用户id',
+    operateUserId int                                not null comment '进行操作的用户id',
+    teamId        int                                not null comment '队伍Id',
+    status        tinyint                            not null comment '0 成员退出队伍
+1 队长退出队伍
+2 队长解散队伍
+',
+    createTime    datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updateTime    datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '创建时间',
+    isDelete      tinyint  default 0                 null,
+    constraint team_notification_id_uindex
+        unique (id)
+);
+
+-- auto-generated definition
+create table user_team
 (
     id         bigint auto_increment comment 'id'
         primary key,
-    tagName    varchar(256)                           null comment '标签名称',
-    userID     bigint                                 null comment '用户 id',
-    parentId   bigint                                 null comment '父标签 id',
-    isParent   tinyint                                null comment '0 - 不是 1 - 是',
-    creatTime  datetime default CURRENT_TIMESTAMP     null comment '创建时间',
-    updateTime datetime default CURRENT_TIMESTAMP     null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete   datetime default '0000-00-00 00:00:00' not null comment '是否创建',
-    constraint uniIdx__tagName
-        unique (tagName)
+    userId     bigint                                     null comment '用户id',
+    teamId     bigint                                     null comment '队伍id',
+    joinTime   datetime                                   null comment '加入时间',
+    creatTime  datetime         default CURRENT_TIMESTAMP null comment '创建时间',
+    updateTime datetime         default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete   tinyint unsigned default '0'               not null comment '是否创建'
 )
-    comment '标签';
+    comment '用户队伍关系';
 
-create index idx__userId
-    on tag (userID);
+-- auto-generated definition
+create table friend
+(
+    id          bigint auto_increment
+        primary key,
+    userId      bigint                             not null comment '用户id',
+    friendId    bigint                             not null comment '好友id',
+    friendAlias varchar(256)                       null comment '用户对好友的备注',
+    userAlias   varchar(256)                       null comment '好友对用户的备注',
+    reason      varchar(1024)                      null comment '申请原因',
+    status      tinyint  default 0                 not null comment '申请状态,0 申请中，1 已同意，2 已拒绝',
+    createTime  datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updateTime  datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint  default 0                 not null
+)
+    comment '好友';
+
